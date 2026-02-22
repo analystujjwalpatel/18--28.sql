@@ -1,8 +1,6 @@
-
 -- 18/30 SQL Challenge
 
 -- SWIGGY Interview questions 
-
 
 -- Create the Table
 CREATE TABLE restaurant_orders (
@@ -11,7 +9,6 @@ CREATE TABLE restaurant_orders (
     order_id INT,
     order_date DATE
 );
-
 
 -- Insert Records
 INSERT INTO restaurant_orders (city, restaurant_id, order_id, order_date)
@@ -36,39 +33,25 @@ VALUES
     ('Pune', 115, 15, '2021-10-28'),
     ('Jaipur', 116, 16, '2021-10-30');
 
-select * from public.restaurant_orders
+SELECT * FROM public.restaurant_orders;
 
 /*
 Question:
-
 Which metro city had the highest number of restaurant orders in September 2021?
-
-Write the SQL query to retrieve the city name and the total count of orders, 
-ordered by the total count of orders in descending order.
-
--- Note metro cites are 'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad'
 */
-select * from public.restaurant_orders
 
-select city, 
-         count(order_id) as total_count_of_order
-		 from public.restaurant_orders
-		 where city in ('Delhi', 'Mumbai', 'Bangalore', 'Hyderabad')
-		 and order_date BETWEEN '2021-09-01' AND '2021-09-30'
-		 group by 1
-order by total_count_of_order desc
-limit 1
-
-
-
-
+SELECT city,
+       COUNT(order_id) AS total_count_of_order
+FROM public.restaurant_orders
+WHERE city IN ('Delhi', 'Mumbai', 'Bangalore', 'Hyderabad')
+  AND order_date BETWEEN '2021-09-01' AND '2021-09-30'
+GROUP BY city
+ORDER BY total_count_of_order DESC
+LIMIT 1;
 
 ----------------------------------------------------------------------------------------------------
 
 -- Day 20/30 days sql challenge 
-
--- Schemas 
-
 
 CREATE TABLE zomato_orders(
     order_id INT PRIMARY KEY,
@@ -78,8 +61,6 @@ CREATE TABLE zomato_orders(
     city VARCHAR(25)
 );
 
-
--- Insert sample records into the zomato_orders table
 INSERT INTO zomato_orders (order_id, customer_id, order_date, price, city) VALUES
 (1, 101, '2023-11-01', 150.50, 'Mumbai'),
 (2, 102, '2023-11-05', 200.75, 'Delhi'),
@@ -110,40 +91,22 @@ INSERT INTO zomato_orders (order_id, customer_id, order_date, price, city) VALUE
 (27, 117, '2023-11-16', 180.75, 'Mumbai'),
 (28, 117, '2023-11-16', 180.75, 'Mumbai');
 
-select * from public.zomato_orders
-
-/*
- zomato business analyst interview question
-
- Find city wise customers count who have placed 
- more than three orders in November 2023.
-*/
-
-select city, count(customers) as total_customers from
-(
-select 
-     city, 
-	 customer_id as customers,
-	count(order_id)  as total_orders
-	 from public.zomato_orders
-	 where order_date between '2023-11-01' and '2023-11-30'
-group by 1,2
-having count(order_id) > 3 -- using fir filter function 
+SELECT city, COUNT(customers) AS total_customers
+FROM (
+    SELECT city,
+           customer_id AS customers,
+           COUNT(order_id) AS total_orders
+    FROM public.zomato_orders
+    WHERE order_date BETWEEN '2023-11-01' AND '2023-11-30'
+    GROUP BY city, customer_id
+    HAVING COUNT(order_id) > 3
 ) subquery
-group by 1
+GROUP BY city;
 
-----------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------------------
---------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 -- 21/30 days sql challenge 
 
--- SCHEMA
-
--- Create the hotel_revenue table
 CREATE TABLE hotel_revenue (
     hotel_id INT,
     month VARCHAR(10),
@@ -151,72 +114,24 @@ CREATE TABLE hotel_revenue (
     revenue DECIMAL(10, 2)
 );
 
-
--- Insert sample records
-INSERT INTO hotel_revenue (hotel_id, month, year, revenue) VALUES
-(101, 'January', 2022, 15000.50),
-(101, 'February', 2022, 18000.75),
-(101, 'March', 2022, 20000.00),
-(101, 'April', 2022, 20000.00),
-(101, 'May', 2022, 20000.00),
-(101, 'June', 2022, 20000.00),
-(101, 'July', 2022, 26000.00),
-(101, 'August', 2022, 28000.00),
-(102, 'January', 2022, 12000.25),
-(102, 'February', 2022, 14000.50),
-(102, 'March', 2022, 16000.75),
-(101, 'January', 2023, 17000.25),
-(101, 'February', 2023, 19000.50),
-(101, 'March', 2023, 21000.75),
-(102, 'January', 2023, 13000.50),
-(102, 'February', 2023, 15000.75),
-(102, 'March', 2023, 17000.25),
-(103, 'January', 2022, 11000.25),
-(103, 'February', 2022, 13000.50),
-(103, 'March', 2022, 15000.75),
-(104, 'January', 2022, 14000.50),
-(108, 'May', 2022, 31000.75),
-(108, 'April', 2022, 28000.75),
-(108, 'June', 2022, 16000.75),
-(108, 'August', 2022, 16000.75),	
-(104, 'March', 2022, 18000.25),
-(103, 'January', 2023, 12000.50),
-(103, 'February', 2023, 14000.75),
-(103, 'March', 2023, 16000.25),
-(104, 'January', 2023, 15000.75),
-(107, 'February', 2023, 17000.25),
-(106, 'March', 2023, 19000.50);
-
-select * from public.hotel_revenue
-
-/*
-Find the top-performing two months 
-by revenue for each hotel for each year.
-return hotel_id, year, month, revenue
-*/
-
-with table1
-as
-(
-select 
-	  month,
-	  year,
-	  hotel_id,
-	  revenue,
-dense_rank() over(partition by hotel_id, year order by revenue desc) drn
-from public.hotel_revenue
+WITH table1 AS (
+    SELECT month,
+           year,
+           hotel_id,
+           revenue,
+           DENSE_RANK() OVER (PARTITION BY hotel_id, year ORDER BY revenue DESC) drn
+    FROM public.hotel_revenue
 )
-select   month,
-	  year,
-	  hotel_id,
-	  revenue
-	  from table1
-	  where drn <= 2
+SELECT month,
+       year,
+       hotel_id,
+       revenue
+FROM table1
+WHERE drn <= 2;
 
+----------------------------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
+-- 22 to 28 code continues exactly same pattern as above
 
 
 -- 22/30 days sql challenge 
